@@ -1,0 +1,90 @@
+[build]
+  publish = "site"
+  functions = "netlify/functions"
+
+[build.environment]
+  NODE_VERSION = "24"
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    X-Frame-Options = "DENY"
+    Referrer-Policy = "same-origin"
+    Content-Security-Policy = "default-src 'self'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'"
+
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/portal/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/login"
+  to = "/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/portal"
+  to = "/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/admin"
+  to = "/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/reset"
+  to = "/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/courses/*"
+  to = "/.netlify/functions/portal/page/courses/:splat"
+  status = 200
+
+[[redirects]]
+  from = "/resources/*"
+  to = "/.netlify/functions/portal/page/resources/:splat"
+  status = 200
+
+[[redirects]]
+  from = "/privacy"
+  to = "/privacy.html"
+  status = 200
+
+[[redirects]]
+  from = "/terms"
+  to = "/terms.html"
+  status = 200
+
+[[redirects]]
+  from = "/sitemap.xml"
+  to = "/.netlify/functions/portal/sitemap.xml"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/healthz"
+  to = "/.netlify/functions/portal/healthz"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/readyz"
+  to = "/.netlify/functions/portal/readyz"
+  status = 200
+  force = true
+
+[functions]
+  node_bundler = "esbuild"
+  external_node_modules = ["pdf-parse", "mammoth", "yauzl", "@napi-rs/canvas"]
+  included_files = [
+    "site/index.html",
+    "node_modules/pdfjs-dist/legacy/build/pdf.worker.mjs",
+    "node_modules/pdfjs-dist/standard_fonts/**",
+    "node_modules/pdfjs-dist/cmaps/**",
+    "node_modules/@napi-rs/canvas/**",
+    "node_modules/@napi-rs/canvas-*/**"
+  ]

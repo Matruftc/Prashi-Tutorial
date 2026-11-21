@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Explore Prashi Tutorial coaching for school foundations, board exams, JEE and NEET.">
+  <title>Prashi Tutorial</title>
+  <link rel="icon" href="/assets/logo.jpg">
+  <link rel="preload" href="/assets/plus-jakarta.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/assets/portal.css">
+  <script type="module" src="/assets/portal.js"></script>
+  <script type="module" src="/assets/cube.js"></script>
+</head>
+<body>
+  <header class="top">
+    <div class="frame site-header">
+      <a class="brand" href="/"><img src="/assets/logo.jpg" alt=""><span>Prashi<span class="brand-secondary"> Tutorial</span></span></a>
+      <nav class="site-nav" id="site-nav" aria-label="Main navigation">
+        <a href="/#courses">Courses</a><a href="/#faculty">Faculty</a><a href="/#results">Achievers</a><a href="/#contact">Admissions</a>
+      </nav>
+      <a class="header-cta" id="portal-link" href="/login">Portal login</a>
+      <button type="button" id="sign-out" class="quiet" hidden>Sign out</button>
+    </div>
+  </header>
+  <main class="frame" id="main">
+    <p id="status" role="status" hidden>Loading portal…</p>
+    <section id="coaching-hero" class="coaching-hero">
+      <div class="hero-copy">
+        <p class="eyebrow"><span></span> School foundations, boards, JEE &amp; NEET</p>
+        <h1>Build confidence.<br><em>Aim higher.</em></h1>
+        <p class="hero-description">Build strong fundamentals, practise with mock tests, and prepare for your next exam with guidance from Prashi Tutorial.</p>
+        <div class="hero-actions"><a class="action-primary action-amber" href="/#courses">Explore courses</a><a class="action-primary action-amber" href="/?request=counselling#contact">Book Free Demo</a></div>
+      </div>
+      <div class="hero-visual cube-visual">
+        <div class="formula-orbit" aria-hidden="true">
+          <span>E = mc²</span><span>F = ma</span><span>a² + b² = c²</span><span>PV = nRT</span><span>∫ x dx = x²/2 + C</span>
+        </div>
+        <div class="cube-perspective" aria-hidden="true"><div class="cube-turntable"><div id="hero-cube" class="hero-cube"></div></div></div>
+        <button type="button" class="cube-toggle quiet" id="cube-toggle" data-motion-toggle hidden>Pause animation</button>
+      </div>
+    </section>
+    <section id="login" class="intro login-layout" hidden>
+      <div>
+        <p class="caption">Student and staff portal</p>
+        <h1>Welcome back.</h1>
+        <p>Sign in for exams, study materials, attendance and school records.</p>
+        <a class="back-home" href="/">Back to Prashi Tutorial</a>
+      </div>
+      <form id="login-form" class="panel">
+        <h2>Sign in</h2>
+        <label>Email or student ID<input name="identifier" autocomplete="username" required maxlength="200"></label>
+        <label>Password<input name="password" type="password" autocomplete="current-password" required maxlength="300"></label>
+        <button>Sign in</button>
+        <button type="button" id="forgot-toggle" class="quiet">Forgot password?</button>
+        <p class="error" role="alert" hidden></p>
+      </form>
+    </section>
+    <form id="forgot-form" class="panel compact" hidden>
+      <h1>Reset password</h1>
+      <label>Email or student ID<input name="identifier" autocomplete="username" required maxlength="200"></label>
+      <button>Request a reset link</button>
+      <p role="status" hidden></p>
+    </form>
+    <form id="reset-form" class="panel compact" hidden>
+      <h1>Choose a new password</h1>
+      <label>New password<input name="replacement" type="password" autocomplete="new-password" required minlength="10" maxlength="200"></label>
+      <button>Save password</button>
+      <p role="status" hidden></p>
+    </form>
+    <form id="password-form" class="panel compact" hidden>
+      <h1>Change password</h1>
+      <p>Set a new password to continue to your portal.</p>
+      <label>Current password<input name="current" type="password" autocomplete="current-password" required maxlength="300"></label>
+      <label>New password<input name="replacement" type="password" autocomplete="new-password" required minlength="10" maxlength="200"></label>
+      <button>Save password</button>
+      <p class="error" role="alert" hidden></p>
+    </form>
+    <div id="public-content" hidden></div>
+    <section id="dashboard" hidden>
+      <p class="caption" id="role"></p>
+      <h1 id="welcome"></h1>
+      <div id="views" class="sections"></div>
+    </section>
+  </main>
+  <footer class="site-footer"><div class="frame"><a class="brand" href="/">Prashi Tutorial</a><nav aria-label="Footer"><a href="/#contact">Contact</a><a href="/privacy">Privacy Policy</a><a href="/terms">Website Terms</a><button type="button" class="motion-control quiet" data-motion-toggle hidden>Pause animation</button></nav><a class="megabyte-credit" href="https://onmegabyte.netlify.app/"><img src="/assets/megabyte-emblem.svg" alt="" width="26" height="26"><span>Powered by <strong>MegaByte</strong></span></a></div></footer>
+</body>
+</html>
