@@ -16,6 +16,7 @@ const loginPage = ['/login', '/portal', '/admin'].includes(location.pathname);
 const publicPage = location.pathname === '/';
 hero.hidden = !publicPage;
 let renderVersion = 0;
+let adminNavigation;
 const money = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' });
 
 async function api(path, payload) {
@@ -40,19 +41,18 @@ function element(tag, text, className) {
   return node;
 }
 
-function panel(title, id) {
+function panel(title, id, parent = views) {
   const section = element('section', '', 'panel');
   if (id) {
     section.id = id;
     section.tabIndex = -1;
   }
   section.append(element('h2', title));
-  views.append(section);
+  parent.append(section);
   return section;
 }
 
-function showAdminGuide() {
-  const section = panel('Admin guides');
+function showAdminGuide(section) {
   const guides = [
     ['Manage people', 'manage-people', [
       'Use Add student login or Add teacher login to create an account. Use the account controls to manage sign-in.',
@@ -103,6 +103,94 @@ function showAdminGuide() {
     details.append(list, link);
     section.append(details);
   }
+}
+
+function showAdmin() {
+  const layout = element('div', '', 'admin-layout');
+  const nav = element('nav', '', 'admin-menu');
+  nav.setAttribute('aria-label', 'Admin sections');
+  const content = element('div', '', 'admin-content');
+  layout.append(nav, content);
+  views.append(layout);
+
+  const tasks = [
+    ['People', [
+      ['manage-people', 'Manage people', section => showPeople(section, 'admin', api)],
+      ['student-import', 'Student CSV import', section => showStudentImport(section, api)],
+    ]],
+    ['Enrollment & fees', [
+      ['manage-records', 'Enrollments, attendance and fees', section => showRecords(section, api, 'admin')],
+    ]],
+    ['Exams', [
+      ['manage-exams', 'Exams', section => showExams(section, 'admin', api)],
+      ['manage-question-bank', 'Manage question bank', section => showQuestionBank(section, 'admin', api)],
+    ]],
+    ['Learning', [
+      ['manage-materials', 'Study materials', section => showMaterials(section, 'admin', api)],
+      ['manage-tutorial', 'Tutorial records and marksheets', section => showTutorial(section, api, 'admin')],
+      ['manage-doubts', 'Student questions', section => showDoubts(section, 'admin', api)],
+    ]],
+    ['Enquiries', [
+      ['manage-inbox', 'Enquiries and admissions', section => showInbox(section, api, 'admin')],
+    ]],
+    ['Website', [
+      ['manage-website', 'Website content and form builder', section => showSiteAdmin(section, api)],
+    ]],
+    ['Administration', [
+      ['manage-administration', 'Administration', section => showAdminOperations(section, api)],
+    ]],
+    ['Help', [['admin-guides', 'Admin guides', showAdminGuide]]],
+  ];
+
+  const areas = tasks.map(([label, panels]) => {
+    const link = element('a', label);
+    link.href = '#' + panels[0][0];
+    nav.append(link);
+    const container = element('div', '', 'admin-area');
+    container.hidden = true;
+    content.append(container);
+    return { link, container, panels, loaded: false };
+  });
+
+  function openSection() {
+    const targetId = location.hash.slice(1);
+    const active = areas.find(area => area.panels.some(([id]) => id === targetId)) || areas[0];
+    for (const area of areas) {
+      area.container.hidden = area !== active;
+      if (area === active) area.link.setAttribute('aria-current', 'location');
+      else area.link.removeAttribute('aria-current');
+    }
+    if (!active.loaded) {
+      active.loaded = true;
+      for (const [id, title, renderSection] of active.panels) {
+        const section = panel(title, id, active.container);
+        async function load() {
+          const feedback = element('p', 'Loading…');
+          feedback.setAttribute('role', 'status');
+          section.append(feedback);
+          try {
+            await renderSection(section);
+            feedback.remove();
+          } catch (error) {
+            feedback.textContent = error.message;
+            const retry = element('button', 'Try again', 'quiet');
+            retry.type = 'button';
+            retry.addEventListener('click', () => {
+              section.replaceChildren(section.firstElementChild);
+              load();
+            }, { once: true });
+            section.append(retry);
+          }
+        }
+        load();
+      }
+    }
+    if (targetId) document.getElementById(targetId)?.focus();
+  }
+
+  adminNavigation = new AbortController();
+  window.addEventListener('hashchange', openSection, { signal: adminNavigation.signal });
+  openSection();
 }
 
 function table(title, columns, rows) {
@@ -184,22 +272,19 @@ async function showStudent(version) {
   }
 }
 
-async function showStaff(role, version) {
+async function showStaff(version) {
   const data = await api('staff');
   if (version !== renderVersion) return;
   table('Students', ['Name', 'Admission number', 'Class', 'School'],
     data.students.map(row => [row.name, row.admission_no, row.class_level, row.school]));
   table('Faculty', ['Name', 'Subject', 'Qualifications'], data.faculty.map(row => [row.name, row.subject, row.qualifications]));
-  if (role === 'admin') {
-    table('Staff logins', ['Name', 'Email', 'Role', 'Status'],
-      data.teachers.map(row => [row.name, row.email, row.role, row.active ? 'Active' : 'Inactive']));
-  }
   table('Question bank', ['Class', 'Subject', 'Chapter', 'Question'], data.questions.map(row =>
     [row.class_level, row.subject, row.chapter, row.question_text]));
 }
 
 async function render(user) {
   const version = ++renderVersion;
+  adminNavigation?.abort();
   login.hidden = Boolean(user) || !loginPage;
   if (user) document.getElementById('forgot-form').hidden = true;
   publicContent.hidden = Boolean(user) || loginPage;
@@ -224,27 +309,31 @@ async function render(user) {
     status.hidden = true;
     return;
   }
-  history.replaceState(null, '', user.role === 'student' ? '/portal' : '/admin');
+  const adminHash = user.role === 'admin' && location.pathname === '/admin' ? location.hash : '';
+  history.replaceState(null, '', user.role === 'student' ? '/portal' : '/admin' + adminHash);
   if (user.mustChangePassword) {
     status.hidden = true;
     return;
   }
   document.getElementById('role').textContent = user.role === 'student' ? 'Student portal' : 'Staff portal';
   document.getElementById('welcome').textContent = 'Welcome, ' + user.name;
+  if (user.role === 'admin') {
+    document.getElementById('role').textContent = 'Admin portal';
+    status.hidden = true;
+    showAdmin();
+    return;
+  }
   status.textContent = 'Loading records…';
   status.hidden = false;
   try {
-    if (user.role === 'admin') showAdminGuide();
     if (user.role === 'student') await showStudent(version);
-    else await showStaff(user.role, version);
+    else await showStaff(version);
     if (version === renderVersion) {
       const sections = [showExams(panel('Exams', 'manage-exams'), user.role, api), showMaterials(panel('Study materials', 'manage-materials'), user.role, api), showDoubts(panel('Student questions', 'manage-doubts'), user.role, api)];
       if (user.role !== 'student') {
         showStudentImport(panel('Student CSV import'), api);
         sections.push(showTutorial(panel('Tutorial records and marksheets', 'manage-tutorial'), api, user.role));
         sections.push(showPeople(panel('Manage people', 'manage-people'), user.role, api), showQuestionBank(panel('Manage question bank', 'manage-question-bank'), user.role, api), showInbox(panel('Enquiries and admissions', 'manage-inbox'), api, user.role), showRecords(panel('Enrollments, attendance and fees', 'manage-records'), api, user.role));
-        if (user.role === 'admin') sections.push(showAdminOperations(panel('Administration', 'manage-administration'), api),
-          showSiteAdmin(panel('Website content and form builder', 'manage-website'), api));
       }
       await Promise.all(sections);
       if (version === renderVersion) status.hidden = true;
